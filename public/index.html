@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Task Manager</title>
+</head>
+<body>
+  <h1>Task Manager</h1>
+  <form id="task-form">
+    <input type="text" id="title" placeholder="New Task" required />
+    <button type="submit">Add Task</button>
+  </form>
+  <ul id="task-list"></ul>
+
+  <script>
+    const form = document.getElementById('task-form');
+    const list = document.getElementById('task-list');
+
+    const loadTasks = async () => {
+      list.innerHTML = '';
+      const res = await fetch('/api/tasks');
+      const tasks = await res.json();
+      tasks.forEach(task => {
+        const li = document.createElement('li');
+        li.textContent = task.title;
+        const btn = document.createElement('button');
+        btn.textContent = '❌';
+        btn.onclick = async () => {
+          await fetch(`/api/tasks/${task.id}`, { method: 'DELETE' });
+          loadTasks();
+        };
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+    };
+
+    form.onsubmit = async e => {
+      e.preventDefault();
+      const title = document.getElementById('title').value;
+      await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title })
+      });
+      form.reset();
+      loadTasks();
+    };
+
+    loadTasks();
+  </script>
+</body>
+</html>
